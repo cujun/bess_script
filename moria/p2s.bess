@@ -1,0 +1,5 @@
+dpdk_ports = int($SN_PORTS!'1')
+print 'Using %d DPDK ports... (envvar "SN_PORTS")' % dpdk_ports
+
+p = Port(driver='PMD', pci='02:00.1')
+PortInc(port=p) -> Sink()
