@@ -1,42 +1,15 @@
+import scapy.all as scapy
 import time
 
 dpdk_ports = int($SN_PORTS!'1')
 print 'Using %d DPDK ports... (envvar "SN_PORTS")' % dpdk_ports
 
+eth = scapy.Ether(src='3c:fd:fe:9e:5b:e1', dst='3c:fd:fe:9e:5c:89')
+ip = scapy.IP(src='192.168.4.3', dst='192.168.4.4')
+udp = scapy.UDP(sport=10001, dport=10002)
+payload = 'helloworld'
+pkt_bytes = bytearray(str(eth/ip/udp/payload))
+
 p = Port(driver='PMD', pci='02:00.1')
 
-PortInc(port=p) -> m::Measure() -> Sink()
-
-bess.pause_all()
-last = m.get_summary()
-m.clear_latency_summary()
-bess.resume_all()
-
-while True:
-    time.sleep(1)
-
-    bess.pause_all()
-    now = m.get_summary()
-    print now
-    latencies = m.get_latency_summary()
-    print latencies
-    m.clear_latency_summary()
-    bess.resume_all()
-    
-    diff = last - now
-    diff /= diff.timestamp
-    last = now
-
-    if diff.packets >= 1.0:
-        ns_per_packet = diff.total_latency_ns / diff.packets
-    else:
-        ns_per_packet = 0
-
-    print '%s: %.3f Mpps, %.3f Mbps, avg %.3f us, min %.3f us, max %.3f us, 99%% %.3f us' % \
-            (time.ctime(now.timestamp),
-             diff.packets / 1e6, 
-             diff.bits / 1e6, 
-             ns_per_packet / 1e3,
-             latencies.min / 1e3,
-             latencies.max / 1e3,
-             latencies.ptiles_99 / 1e3)
+PortInc(port=p) -> Rewrite([pkt_bytes]) ->  PortOut(port=p)
