@@ -4,12 +4,9 @@ import time
 dpdk_ports = int($SN_PORTS!'1')
 print 'Using %d DPDK ports... (envvar "SN_PORTS")' % dpdk_ports
 
-eth = scapy.Ether(src='3c:fd:fe:9e:5b:e1', dst='3c:fd:fe:9e:5c:89')
-ip = scapy.IP(src='192.168.4.3', dst='192.168.4.4')
-udp = scapy.UDP(sport=10001, dport=10002)
-payload = 'helloworld'
-pkt_bytes = bytearray(str(eth/ip/udp/payload))
-
 p = Port(driver='PMD', pci='02:00.1')
 
-PortInc(port=p) -> Rewrite([pkt_bytes]) ->  PortOut(port=p)
+PortInc(port=p) \
+    -> Update([{'offset': 0, 'size': 6, 'value': '3cfdfe9e5c89'}, \
+            {'offset': 6, 'size': 6, 'value': '3cfdfe9e5be1'}]) \
+    -> PortOut(port=p)
